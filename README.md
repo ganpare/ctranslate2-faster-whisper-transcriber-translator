@@ -85,5 +85,3 @@ supported_quantizations:
 
 このプロジェクトは、[BBC-Esq/ctranslate2-faster-whisper-transcriber](https://github.com/BBC-Esq/ctranslate2-faster-whisper-transcriber) の派生としてスタートしました。しかし、構成が大幅に変更されたため、独立したリポジトリとして公開しています。オリジナルの貢献者である [BBC-Esq](https://github.com/BBC-Esq) に感謝いたします。
 
-## ライセンス
-[MIT License](LICENSE)
