@@ -1,0 +1,15 @@
+
+# Ignore virtual environment folder
+venv/
+venv2/
+
+# Ignore Python cache and build files
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Ignore temp files
+*.tmp

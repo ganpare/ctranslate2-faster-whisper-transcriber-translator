@@ -20,11 +20,11 @@ class VoiceRecorder:
             with open("config.yaml", "r") as f:
                 config = yaml.safe_load(f)
                 if "device_type" not in config:
-                    config["device_type"] = "cpu"
+                    config["device_type"] = "cuda"
                 if "model_name" not in config:
-                    config["model_name"] = "base.en"
+                    config["model_name"] = "large-v3"
                 if "quantization_type" not in config:
-                    config["quantization_type"] = "int8"
+                    config["quantization_type"] = "int8-float16"
 
                 self.update_model(config["model_name"], config["quantization_type"], config["device_type"])
         except FileNotFoundError:
@@ -45,19 +45,24 @@ class VoiceRecorder:
             yaml.safe_dump(config, f)
 
     def update_model(self, model_name, quantization_type, device_type):
-        model_str = f"ctranslate2-4you/whisper-{model_name}-ct2-{quantization_type}"
-        self.model = WhisperModel(model_str, device=device_type, compute_type=quantization_type, cpu_threads=26)
+        if model_name == "large-v3":
+            model_str = "Systran/faster-whisper-large-v3"
+            self.model = WhisperModel(model_str, device=device_type, compute_type=quantization_type, cpu_threads=26)
+        else:
+            model_str = f"ctranslate2-4you/whisper-{model_name}-ct2-{quantization_type}" 
+            self.model = WhisperModel(model_str, device=device_type, compute_type=quantization_type, cpu_threads=26)
         self.window.update_status(f"Model updated to {model_name} with {quantization_type} quantization on {device_type} device")
         self.save_settings(model_name, quantization_type, device_type)
-
+    
     def transcribe_audio(self, audio_file):
         segments, _ = self.model.transcribe(audio_file)
-        clipboard_text = "\n".join([segment.text for segment in segments])
-        
-        clipboard = QApplication.clipboard()
-        clipboard.setText(clipboard_text)
-        
-        self.window.update_status("Audio saved and transcribed")
+        transcription = "\n".join([segment.text for segment in segments])
+        return transcription
+
+    def translate_audio(self, audio_file):
+        segments, _ = self.model.transcribe(audio_file, task="translate", language="en")
+        translation = "\n".join([segment.text for segment in segments])
+        return translation
 
     def record_audio(self):
         self.window.update_status("Recording...")
@@ -70,17 +75,6 @@ class VoiceRecorder:
         finally:
             p.terminate()
 
-    def save_audio(self):
-        self.is_recording = False
-        temp_filename = tempfile.mktemp(suffix=".wav")
-        with wave.open(temp_filename, "wb") as wf:
-            wf.setnchannels(self.channels)
-            wf.setsampwidth(pyaudio.PyAudio().get_sample_size(self.format))
-            wf.setframerate(self.rate)
-            wf.writeframes(b"".join(self.frames))
-        self.transcribe_audio(temp_filename)
-        os.remove(temp_filename)
-        self.frames.clear()
 
     def start_recording(self):
         if not self.is_recording:
