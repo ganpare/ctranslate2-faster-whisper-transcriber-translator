@@ -23,7 +23,7 @@
 
 2. 仮想環境をアクティブにします:
    ```bash
-   .env\Scriptsctivate
+   .venv\Scripts\activate
    ```
 
 ### 2. PyTorch および CUDA の設定
